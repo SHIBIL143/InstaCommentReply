@@ -5,7 +5,7 @@ import time
 bot = Bot()
 
 # Login to Instagram
-bot.login(username="shibil_gamer", password="@SHIBIL@SANU@6238910801@")
+bot.login(username="shibil_gamer", password="pass")
 
 # Define Reels with corresponding keywords and reply messages
 reels_keywords_responses = {
