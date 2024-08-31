@@ -1,41 +1,43 @@
-from instabot import Bot
-import time
+import os
+import logging
+from instagrapi import Client
 
-# Initialize bot instance
-bot = Bot()
+# Configure logging
+logging.basicConfig(filename='instabot.log', level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Login to Instagram
-bot.login(username="shibil_gamer", password="pass")
+try:
+    # Initialize the client
+    cl = Client()
 
-# Define Reels with corresponding keywords and reply messages
-reels_keywords_responses = {
-    "C_GX3xTPClo": {
-        "Link": "Thank You For Watching Reel !  Download Link: https://shibilgamer.online/mc-download",
-        "link": "Thank You For Watching Reel !  Download Link: https://shibilgamer.online/mc-download"
-    },
-    "reel_id_2": {
-        "cool": "Glad you liked Reel 2! Check your DMs for something special.",
-        "free": "Yes, Reel 2 content is free! More details sent to your DM."
-    },
-    # Add more Reels and keyword-response pairs as needed
-}
+    # Log in using environment variables for better security
+    username = os.getenv("shibil_gamer")
+    password = os.getenv("@SHIBIL@SANU@6238910801@")
+    cl.login(username, password)
+    logging.info("Logged in successfully.")
 
-# Monitor comments and auto-reply based on keywords per reel
-def monitor_comments():
-    for reel_id, keywords_responses in reels_keywords_responses.items():
-        # Fetch the comments on the specific Reel
-        comments = bot.get_media_comments(reel_id)
+    # The reel link and DM message content
+    reel_link = "https://www.instagram.com/reel/C_GX3xTPClo/"
+    dm_message = "Here is the link you requested: [Your Link]"
 
-        for comment in comments:
-            comment_text = comment['text'].lower()
-            # Check if the comment contains any of the keywords for this specific Reel
-            for keyword, response in keywords_responses.items():
-                if keyword in comment_text:
-                    user_id = comment['user']['pk']
-                    bot.send_message(response, user_id)
-                    print(f"Sent DM to {comment['user']['username']} for Reel {reel_id} with message: {response}")
+    # Get the media PK (Primary Key) from the reel link
+    reel_pk = cl.media_pk_from_url(reel_link)
+    logging.info(f"Reel PK: {reel_pk}")
 
-# Run the monitor_comments function periodically
-while True:
-    monitor_comments()
-    time.sleep(60)  # Check every 60 seconds
+    # Fetch the comments from the reel
+    comments = cl.media_comments(reel_pk)
+    logging.info(f"Total comments fetched: {len(comments)}")
+
+    # Loop through each comment and send a DM if it contains the keyword "LINK"
+    for comment in comments:
+        if "test" in comment.text.upper():
+            user_id = comment.user.pk  # Get the user ID from the comment
+            cl.direct_send(dm_message, [user_id])
+            logging.info(f"Sent DM to {comment.user.username}")
+
+    # Logout after the operations are complete
+    cl.logout()
+    logging.info("Logged out successfully.")
+
+except Exception as e:
+    logging.error(f"An error occurred: {e}")
